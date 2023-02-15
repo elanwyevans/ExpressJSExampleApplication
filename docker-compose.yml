@@ -1,0 +1,58 @@
+version: "3.6"
+services:
+  webserver:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: webserver
+    image: node-a-webserver
+    restart: always
+    ports:
+      - "81:80"
+    networks:
+      - dbnetwork
+    volumes:
+      - ./nodewebserver:/var/www/node
+  webservice:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: webservice
+    image: node-a-webservice
+    restart: always
+    ports:
+      - "1339:1339"
+    networks:
+      - dbnetwork
+    volumes:
+      #- type: bind
+        # source: ./nodewebservice
+        # target: /var/www/node
+      - ./nodewebservice:/var/www/node
+  postgres:
+    image: postgres:latest
+    restart: always
+
+    #using ports 5000:5000 as postgres already
+    #exists on 5433. still use localhost:8080 in browser
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: "docker"
+      POSTGRES_PASSWORD: "password"
+      POSTGRES_DB: "mydb"
+    networks:
+      - dbnetwork
+    volumes:
+      - ./postgres-data:/var/lib/postgresql/data
+  adminer:
+    image: adminer
+    restart: always
+    ports:
+      - "8080:8080"
+    depends_on:
+      - postgres
+    networks:
+      - dbnetwork
+networks:
+    dbnetwork:
